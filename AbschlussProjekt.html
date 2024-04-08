@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Farbkreis nach Küppers</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: white;
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+
+            #colorText {
+                font-size: 18px;
+                margin-top: 20px;
+            }
+
+            area {
+                cursor: pointer;
+            }
+
+            #colorOutline {
+                width: 95%;
+                height: 95%;
+                margin-left: 2%;
+                margin-top: 0.5%;
+                margin-bottom: 0.5%;
+                border: 2px solid #000;
+                border-radius: 30px;
+                padding: 10px;
+            }
+
+            .light-mode #colorOutline {
+                border: 2px solid #000;
+                color: black;
+            }
+
+            .dark-mode #colorOutline {
+                border: 2px solid #fff;
+                color: white;
+            }
+
+            .dark-mode {
+                background-color: black;
+                color: white;
+            }
+
+            #darkWhiteMode {
+                position: relative;
+                display: inline-block;
+            }
+
+            #darkWhiteMode input {
+                background-color: transparent;
+                position: absolute;
+                margin-left: 800px;
+                bottom: 500px;
+            }
+
+            .dark-mode #darkWhiteMode input {
+                color: white;
+            }
+
+            #darkWhiteMode .export button {
+                bottom: 500px;
+            }
+
+            #darkWhiteMode .resetButton button {
+                bottom: 400px;
+            }
+
+            #darkWhiteMode .colorMix button {
+                bottom: 300px;
+            }
+
+            #darkWhiteMode button {
+                background-color: transparent;
+                border: 1px solid black;
+                color: black;
+                padding: 5px 10px;
+                position: absolute;
+                border-radius: 5px;
+                margin-left: 1300px;
+                bottom: 600px;
+            }
+
+            #darkWhiteMode button:hover {
+                cursor: pointer;
+            }
+
+            .dark-mode #darkWhiteMode button {
+                border-color: white;
+                color: white;
+            }
+
+            .light-mode #darkWhiteMode button {
+                border-color: black;
+                color: black;
+            }
+
+            #colorHistoryBox {
+                position: absolute;
+                margin-left: 1100px;
+                bottom: 40px;
+                height: 500px;
+                resize: none;
+                border: none;
+                background-color: transparent;
+            }
+            .dark-mode #colorHistoryBox {
+                color: white;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="colorOutline">
+            <h1>Farbkreis nach Küppers</h1>
+            <p id="colorizedText">
+                Wählen Sie nachfolgend (aus Sicht von RGB) eine Primär- oder
+                Sekundärfarbe aus dem Farbkreis. Dieser Text wird dann ebenso in
+                dieser Farbe automatisch dargestellt.
+            </p>
+
+            <map name="colorMap">
+                <area
+                    shape="poly"
+                    coords="525,265,298,264,413,70,424,78,437,84,448,95,460,106,471,119,482,134,493,149,507,174,517,203,523,229"
+                    alt="Red"
+                    onclick="changeColor('rgb(255,0,0)')"
+                />
+                <area
+                    shape="poly"
+                    coords="70,264,296,265,185,71,161,83,139,103,115,130,93,168,80,207"
+                    alt="Green"
+                    onclick="changeColor('rgb(0,255,0)')"
+                />
+                <area
+                    shape="poly"
+                    coords="186,462,297,268,411,463,383,475,367,483,340,491,300,492,268,491,225,482"
+                    alt="Blue"
+                    onclick="changeColor('rgb(0,0,255)')"
+                />
+                <area
+                    shape="poly"
+                    coords="70,264,297,266,186,460,168,450,149,434,123,410,100,379,85,344,75,315"
+                    alt="Cyan"
+                    onclick="changeColor('rgb(0,255,255)')"
+                />
+                <area
+                    shape="poly"
+                    coords="411,464,297,266,525,265,525,295,519,319,507,356,494,385,462,424"
+                    alt="Magenta"
+                    onclick="changeColor('rgb(255,0,255)')"
+                />
+                <area
+                    shape="poly"
+                    coords="411,70,297,266,183,68,205,57,224,49,251,40,277,36,305,36,328,38,362,47,386,55,399,63"
+                    alt="Yellow"
+                    onclick="changeColor('rgb(255,255,0)')"
+                />
+            </map>
+
+            <img src="Farbkreis.png" usemap="#colorMap" />
+
+            <div id="colorText">
+                Hier wird der Text in der ausgewählten Farbe dargestellt.
+            </div>
+
+            <div id="darkWhiteMode">
+                <button onclick="mode()">Dark/Light Mode</button>
+                <div class="export">
+                    <button onclick="exportColorInfo()">
+                        Export Color Info
+                    </button>
+                </div>
+                <textarea id="colorHistoryBox" readonly></textarea>
+                <div class="resetButton">
+                    <button onclick="resetColorHistory()">Reset History</button>
+                </div>
+                <input
+                    type="text"
+                    id="colorPicker"
+                    placeholder="Enter RGB code or CMY %"
+                />
+                <div class="colorMix">
+                    <button onclick="mixColors()">Mix Colors</button>
+                </div>
+            </div>
+            <script>
+                var colorHistory =
+                    JSON.parse(localStorage.getItem("colorHistory")) || [];
+
+                var colorNames = {
+                    "rgb(255,0,0)": "Red",
+                    "rgb(0,255,0)": "Green",
+                    "rgb(0,0,255)": "Blue",
+                    "rgb(0,255,255)": "Cyan",
+                    "rgb(255,0,255)": "Magenta",
+                    "rgb(255,255,0)": "Yellow",
+                    "rgb(128,0,128)": "Purple",
+                    "rgb(128,128,0)": "Olive",
+                    "rgb(0,128,128)": "Teal",
+                    "rgb(255,128,0)": "Orange",
+                    "rgb(255,128,128)": "Salmon",
+                    "rgb(255,0,128)": "Pink",
+                    "rgb(128,255,0)": "Chartreuse",
+                    "rgb(0,255,128)": "Seafoam",
+                    "rgb(0,128,255)": "Azure",
+                    "rgb(128,0,255)": "Violet",
+                    "rgb(255,255,255)": "White",
+                    "rgb(0,0,0)": "Black",
+                    "rgb(128,128,128)": "Grey",
+                };
+                function changeColor(color) {
+                    colorHistory.push({ name: colorNames[color], rgb: color });
+                    localStorage.setItem(
+                        "colorHistory",
+                        JSON.stringify(colorHistory),
+                    );
+
+                    updateColorHistoryBox();
+
+                    document.getElementById("colorText").style.color = color;
+                    document.getElementById("colorizedText").style.color =
+                        color;
+
+                    var rgbValues = getRGB(color).join(",");
+                    var colorName = colorNames[color] || rgbValues;
+                    document.getElementById("colorText").innerText =
+                        "Gewählte Farbe: " +
+                        colorName +
+                        " (RGB: " +
+                        rgbValues +
+                        ")";
+
+                    var cmy = rgbToCmy(getRGB(color));
+                    var cmyPercent = cmy.map(function (value) {
+                        return value * 100 + "%";
+                    });
+                    document.getElementById("colorText").innerText +=
+                        "\nCMY: " + cmyPercent.join(", ");
+
+                    var rgb = getRGB(color);
+                    var hex = rgbToHex(rgb);
+                    document.getElementById("colorText").innerText +=
+                        "\nRGB (Hex): " + hex;
+
+                    document.getElementById("colorOutline").style.borderColor =
+                        color;
+                }
+
+                function getRGB(rgb) {
+                    return rgb.match(/\d+/g).map(Number);
+                }
+
+                function rgbToCmy(rgb) {
+                    var c = 1 - rgb[0] / 255;
+                    var m = 1 - rgb[1] / 255;
+                    var y = 1 - rgb[2] / 255;
+                    return [c, m, y];
+                }
+
+                function rgbToHex(rgb) {
+                    return (
+                        "#" +
+                        componentToHex(rgb[0]) +
+                        componentToHex(rgb[1]) +
+                        componentToHex(rgb[2])
+                    );
+                }
+
+                function componentToHex(c) {
+                    var hex = c.toString(16);
+                    return hex.length == 1 ? "0" + hex : hex;
+                }
+
+                var dark = false;
+
+                function mode() {
+                    dark = !dark;
+
+                    if (dark) {
+                        document.body.classList.add("dark-mode");
+                        document.body.classList.remove("light-mode");
+                    } else {
+                        document.body.classList.add("light-mode");
+                        document.body.classList.remove("dark-mode");
+                    }
+                }
+
+                function updateColorHistoryBox() {
+                    var historyText = colorHistory
+                        .map((color, index) => {
+                            return `${index + 1}. ${color.name || color.rgb}`;
+                        })
+                        .join("\n");
+                    document.getElementById("colorHistoryBox").value =
+                        historyText;
+                }
+
+                function resetColorHistory() {
+                    colorHistory = [];
+                    localStorage.removeItem("colorHistory");
+                    updateColorHistoryBox();
+                }
+
+                function exportColorInfo() {
+                    var color =
+                        document.getElementById("colorText").style.color;
+                    var cmy = rgbToCmy(getRGB(color));
+                    var rgb = getRGB(color);
+                    var hex = rgbToHex(rgb);
+
+                    var content = "Selected Color Info:\n";
+                    var colorName = colorNames[color] || rgb.join(",");
+                    content += "Color: " + colorName + "\n";
+                    content +=
+                        "CMY: " +
+                        cmy.map((value) => value * 100 + "%").join(", ") +
+                        "\n";
+                    content += "RGB (Hex): " + hex + "\n\n";
+                    content += "Color History:\n";
+                    colorHistory.forEach(function (color, index) {
+                        var historyColorName =
+                            color.name || getRGB(color.rgb).join(",");
+                        var historyRgbValues = getRGB(color.rgb).join(",");
+                        content +=
+                            index +
+                            1 +
+                            ". " +
+                            historyColorName +
+                            " (RGB: " +
+                            historyRgbValues +
+                            ")\n";
+                    });
+
+                    var blob = new Blob([content], {
+                        type: "text/plain;charset=utf-8",
+                    });
+
+                    var a = document.createElement("a");
+                    a.href = URL.createObjectURL(blob);
+                    a.download = "color_info.txt";
+
+                    document.body.appendChild(a);
+                    a.click();
+
+                    document.body.removeChild(a);
+                    localStorage.removeItem("colorHistory");
+                }
+
+                const colorInput = document.getElementById("colorPicker");
+                let timeout;
+
+                colorInput.addEventListener("input", function () {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function () {
+                        const color = isValidColor(colorInput.value);
+                        if (color) {
+                            changeColor(color);
+                        }
+                    }, 500);
+                });
+
+                function isValidColor(color) {
+                    // Regular expressions to validate RGB and CMY formats
+                    const rgbRegex = /^(\d{1,3}),(\d{1,3}),(\d{1,3})$/;
+                    const cmyRegex = /^(\d{1,3})%,(\d{1,3})%,(\d{1,3})%$/;
+
+                    // Check if the input matches the RGB format
+                    let match = color.match(rgbRegex);
+                    if (match) {
+                        // If matched, construct the RGB string and return it
+                        return "rgb(" + match.slice(1).join(",") + ")";
+                    }
+
+                    // Check if the input matches the CMY format
+                    match = color.match(cmyRegex);
+                    if (match) {
+                        // If matched, calculate RGB from CMY and return RGB string
+                        const rgb = cmyToRgb(match.slice(1).map(Number));
+                        return "rgb(" + rgb.join(",") + ")";
+                    }
+
+                    // If not matched, return null
+                    return null;
+                }
+
+                // Convert CMY percentages to RGB values
+                function cmyToRgb(cmy) {
+                    const r = Math.round(255 * (1 - cmy[0] / 100));
+                    const g = Math.round(255 * (1 - cmy[1] / 100));
+                    const b = Math.round(255 * (1 - cmy[2] / 100));
+                    return [r, g, b];
+                }
+
+                function mixColors() {
+                    const color1 =
+                        document.getElementById("colorText").style.color;
+                    const color2 = document.getElementById("colorPicker").value;
+
+                    const rgb1 = getRGB(color1);
+                    const rgb2 = getRGB(isValidColor(color2));
+
+                    if (rgb1 && rgb2) {
+                        const mixedColor = mixRGB(rgb1, rgb2);
+                        changeColor("rgb(" + mixedColor.join(",") + ")");
+                    }
+                }
+
+                // Mix two RGB colors
+                function mixRGB(rgb1, rgb2) {
+                    const mixedColor = [
+                        Math.round((rgb1[0] + rgb2[0]) / 2),
+                        Math.round((rgb1[1] + rgb2[1]) / 2),
+                        Math.round((rgb1[2] + rgb2[2]) / 2),
+                    ];
+                    return mixedColor;
+                }
+            </script>
+        </div>
+    </body>
+</html>
