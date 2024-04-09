@@ -57,7 +57,7 @@
             #darkWhiteMode input {
                 background-color: transparent;
                 position: absolute;
-                margin-left: 50vw;
+                margin-left: 40vw;
                 bottom: 500px;
             }
 
@@ -115,7 +115,8 @@
                 color: white;
             }
             #darkWhiteMode #colorPickerColor {
-                bottom: 400px;
+                margin-left: 59vw;
+                bottom: 33.7vw;
             }
         </style>
     </head>
@@ -429,13 +430,6 @@
                     const g = (bigint >> 8) & 255;
                     const b = bigint & 255;
 
-                    return [r, g, b];
-                }
-                // Convert CMY percentages to RGB values
-                function cmyToRgb(cmy) {
-                    const r = Math.round(255 * (1 - cmy[0] / 100));
-                    const g = Math.round(255 * (1 - cmy[1] / 100));
-                    const b = Math.round(255 * (1 - cmy[2] / 100));
                     return [r, g, b];
                 }
 
